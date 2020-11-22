@@ -1,0 +1,22 @@
+# Compiled python modules.
+*.pyc
+
+__pycache__/
+
+# Setuptools
+/dist/
+/*.egg-info
+
+# Pytest
+.pytest_cache
+
+# IDE
+/.idea/
+/.vscode/
+
+# Virtual Environment
+/venv/
+
+# Resources
+/data/
+/bin/
