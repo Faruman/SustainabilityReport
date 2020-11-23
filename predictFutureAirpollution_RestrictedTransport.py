@@ -14,6 +14,7 @@ particle_limits = {'NO2': 40, 'O3': 100, 'PM10': 20, 'PM25': 10, 'SO2': 20}
 
 region = "ES51"
 model_name = "Linear Regression"
+policy_dict = {"vreg_CAR": -0.5}
 
 historic_path = glob.glob(os.path.join(base_path, "historic", "{}_historic_*.csv".format(region)))[0]
 forecast_path = glob.glob(os.path.join(base_path, "forecast", "{}_forecast_*_data.csv".format(region)))[0]
@@ -25,6 +26,14 @@ df_historic = df_historic.set_index("year")
 df_forecast = pd.read_csv(forecast_path)
 df_forecast = df_forecast.drop(["NUTS_ID", "NUTS_NAME"], axis=1)
 df_forecast = df_forecast.set_index("year")
+
+for key in policy_dict.keys():
+    filter_columns = [s for s in df_forecast.columns if key in s]
+    base = df_forecast.loc[df_forecast.index.min(), filter_columns]
+    forecast = base + (base * policy_dict[key])
+    slope = (forecast - base) / (df_forecast.index.max() - df_forecast.index.min())
+    for year in list(set(df_forecast.index) - set([df_forecast.index.min()])):
+        df_forecast.loc[year, filter_columns] = base + slope * (year - df_forecast.index.min())
 
 pollution_forcast_columns = pd.Series(pollutants)
 pollution_forcast_columns = pollution_forcast_columns.append("upper_" + pd.Series(pollutants))
@@ -59,8 +68,8 @@ df = df_historic.append(df_pollution_forecast)
 
 #without confidence intervall
 df[pollutants].plot()
-plt.title("Devlopment air pollution 1990 to 2030")
-plt.savefig(os.path.join(base_path, "plots", "airPollution19902030.png"))
+plt.title("Devlopment air pollution 1990 to 2030 - restrict traffic")
+plt.savefig(os.path.join(base_path, "plots", "airPollution19902030_restTraffic.png"))
 plt.show()
 
 # create graph which shows level above the threshold in red
@@ -95,13 +104,13 @@ for i, pollutant in enumerate(pollutants):
     plt.xlim(x.min(), x.max())
     plt.ylim(0, highest_value*1.1)
     plt.hlines(particle_limits[pollutant], x[0], x[-1], colors='k', linestyles='solid', label='WHO threshold')
-    plt.title("Development of {}".format(pollutant))
+    plt.title("Development of {} (with restricted traffic)".format(pollutant))
     plt.xlabel('year')
     plt.ylabel('µg/m³')
     handles, labels = plt.gca().get_legend_handles_labels()
     patch = mpatches.Patch(color=cmap[i], label=pollutant)
     handles.insert(0, patch)
     plt.legend(handles=handles)
-    plt.savefig(os.path.join(base_path, "plots", "Development_{}_{:.0f}_{:.0f}_woIntervention.png".format(pollutant, x.min(), x.max())))
+    plt.savefig(os.path.join(base_path, "plots", "Development_{}_{:.0f}_{:.0f}_restTraffic.png".format(pollutant, x.min(), x.max())))
     plt.show()
 

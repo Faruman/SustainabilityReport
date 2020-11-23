@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 from sklearn.preprocessing import PolynomialFeatures
-from sklearn.linear_model import LinearRegression, ElasticNet, BayesianRidge
+from sklearn.linear_model import LinearRegression, ElasticNet, Lasso
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor,  AdaBoostRegressor
@@ -17,13 +17,13 @@ pollutants = ['NO2', 'O3', 'PM10', 'PM25', 'SO2']
 linreg = LinearRegression()
 polyreg = Pipeline([('poly', PolynomialFeatures(degree=3)), ('linear', LinearRegression(fit_intercept=False))])
 elasticnet = ElasticNet()
-bayridg = BayesianRidge()
+lassoreg = Lasso(positive= True)
 dectree = DecisionTreeRegressor()
 
 randfst = RandomForestRegressor()
 adaboost =  AdaBoostRegressor()
 
-models = {"Linear Regression": linreg, "Polynomial Regression": polyreg, "ElasticNet Regression": elasticnet, "Bayes Ridge Regression": bayridg, "Decision Tree": dectree, "Random Forest": randfst, "AdaBoost": adaboost}
+models = {"Linear Regression": linreg, "Polynomial Regression": polyreg, "ElasticNet Regression": elasticnet, "Lasso Regression with positive Coefficients": lassoreg, "Decision Tree": dectree, "Random Forest": randfst, "AdaBoost": adaboost}
 
 df = pd.read_csv(os.path.join(base_path + "data\data.csv"))
 
@@ -35,6 +35,7 @@ df_X = df[list(set(df.columns) - set(["NUTS_NAME"]) - set(pollutants))]
 results = pd.DataFrame(index= range(0, len(pollutants) * len(models.keys())), columns=["model", "pollutant", "mse", "r2"])
 feature_importance_decTree = pd.DataFrame(index= pollutants, columns= df_X.columns)
 feature_importance_linReg = pd.DataFrame(index= pollutants, columns= ["intercept"] + list(df_X.columns))
+feature_importance_lassoReg = pd.DataFrame(index= pollutants, columns= ["intercept"] + list(df_X.columns))
 
 i = 0
 
@@ -71,6 +72,9 @@ for pollutant in pollutants:
         if model_name == "Linear Regression":
             feature_importance_linReg.loc[pollutant, "intercept"] = model.intercept_
             feature_importance_linReg.loc[pollutant, df_X.columns] = model.coef_
+        if model_name == "Lasso Regression with positive Coefficients":
+            feature_importance_lassoReg.loc[pollutant, "intercept"] = model.intercept_
+            feature_importance_lassoReg.loc[pollutant, df_X.columns] = model.coef_
         y_pred_bcn = model.predict(X_bcn)
         col_idx = j % 2
         row_idx = int(j / 2)
@@ -82,8 +86,10 @@ for pollutant in pollutants:
     plt.show()
 
 results.to_excel(os.path.join(base_path, "model", "results.xlsx"), index= False)
-feature_importance = feature_importance_decTree.reindex(sorted(feature_importance_decTree.columns), axis=1)
-feature_importance.to_excel(os.path.join(base_path, "model", "FeatureImportanceDecTree.xlsx"))
-
-
+feature_importance_decTree = feature_importance_decTree.reindex(sorted(feature_importance_decTree.columns), axis=1)
+feature_importance_decTree.to_excel(os.path.join(base_path, "model", "FeatureImportanceDecTree.xlsx"))
+feature_importance_linReg = feature_importance_linReg.reindex(sorted(feature_importance_linReg.columns), axis=1)
+feature_importance_linReg.to_excel(os.path.join(base_path, "model", "FeatureImportanceLinReg.xlsx"))
+feature_importance_lassoReg = feature_importance_lassoReg.reindex(sorted(feature_importance_lassoReg.columns), axis=1)
+feature_importance_lassoReg.to_excel(os.path.join(base_path, "model", "FeatureImportanceLassoReg.xlsx"))
 
