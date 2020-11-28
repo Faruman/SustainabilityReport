@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 
 import plotly.graph_objs as go
-from plotly.offline import init_notebook_mode, plot
 from plotly.subplots import make_subplots
 
 class AirpollutionPlotter():
@@ -55,4 +54,6 @@ class AirpollutionPlotter():
 
         fig.update_layout(plot_bgcolor= "rgba(0, 0, 0, 0)", paper_bgcolor= "rgba(0, 0, 0, 0)")
         fig.update_layout(legend=dict(orientation="h", yanchor="top", y=1.1, x=0.5, xanchor="center"))
+        fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='LightGrey')
+        fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGrey')
         return fig

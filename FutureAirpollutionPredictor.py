@@ -1,7 +1,4 @@
 import pandas as pd
-import pickle
-import glob
-import os
 
 class AirpollutionPredictor:
     def __init__(self, pollutants, particle_limits):
@@ -50,6 +47,7 @@ class AirpollutionPredictor:
                 df_temp = df_temp[self.models_airp_columnOrder]
                 y_pred = model.predict(df_temp)
                 frcst_airp.loc[:, pollutant] = y_pred
+            frcst_airp = frcst_airp.applymap(lambda x: x if x > 0 else 0)
             self.frcst_airp = frcst_airp
             del frcst_data
 

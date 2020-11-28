@@ -44,11 +44,13 @@ airpollutionplotter = AirpollutionPlotter()
 
 #---------------------------------------------------------------
 
-app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+dash_app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = dash_app.server
 # try running the app with one of the Bootswatch themes e.g.
 # app = dash.Dash(external_stylesheets=[dbc.themes.JOURNAL])
 # app = dash.Dash(external_stylesheets=[dbc.themes.SKETCHY])
 
+dash_app.title = 'Sustainability Report'
 
 header = dbc.Row(
     [
@@ -139,20 +141,18 @@ filter = dbc.Row(
 )
 
 MainPlot = dbc.Row([
-    dbc.Container([
         dcc.Graph(id='pollution_graph', className="w-100", style={'width': '90vh', 'height': '90vh'})
-    ])
     ],
     className= "px-5 py-4 bg-light",
 )
 
-app.layout = html.Div(
+dash_app.layout = html.Div(
     [header, explenation, filter, MainPlot]
 )
 
 #---------------------------------------------------------------
 
-@app.callback(
+@dash_app.callback(
     Output('pollution_graph','figure'),
     [Input('vreg_CAR','value'), Input('vreg_MOTO','value'), Input('lst_A2000','value'), Input('crpp_C0000','value'), Input('ind_B','value'), Input('ind_C','value')]
 )
@@ -176,4 +176,4 @@ def build_graph(vreg_CAR, vreg_MOTO, lst_A2000, crpp_C0000, ind_B, ind_C):
 #---------------------------------------------------------------
 
 if __name__ == "__main__":
-    app.run_server(host='0.0.0.0', port=8080)
+    dash_app.run_server(debug=False)
