@@ -13,6 +13,7 @@ __pycache__/
 # IDE
 /.idea/
 /.vscode/
+/.ipynb_checkpoints/
 
 # Virtual Environment
 /venv/
